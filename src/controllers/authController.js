@@ -14,6 +14,7 @@ const transporter = nodemailer.createTransport({
 exports.requestPasswordReset = async (req, res) => {
   const { email } = req.body;
   try {
+    console.log(`🔍 Received password reset request for email: ${email}`);
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -23,15 +24,16 @@ exports.requestPasswordReset = async (req, res) => {
     await user.save();
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
+    console.log(`📩 Sending reset link: ${resetLink}`);
     await transporter.sendMail({
       to: user.email,
       subject: "Password Reset Request",
       html: `<p>Click <a href="${resetLink}">here</a> to reset your password. This link expires in 15 minutes.</p>`
     });
-
+    console.log("✅ Password reset email sent successfully");
     res.json({ message: "Reset link sent to email" });
   } catch (err) {
+    console.error("❌ Error in requestPasswordReset:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
